@@ -1,0 +1,4 @@
+whisper
+googletrans
+pillow
+ffmpeg-python
