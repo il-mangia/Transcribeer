@@ -145,19 +145,6 @@ UI Features:
 
 ---
 
-## 📁 Project Structure
-
-Transcribeer/  
- ├── main.py  
- ├── ui.py  
- ├── transcriber.py  
- ├── utils.py  
- ├── themes.json  
- ├── languages.json  
- ├── logo.png  
-
----
-
 ## 🔧 Development Setup (Optional)
 
 Install dependencies:  
@@ -199,7 +186,7 @@ All are converted to WAV automatically.
 
 ## ❤️ License  
 
-MIT License — free to modify, fork, and contribute.
+OPEN SOURCE!!!!!!!!!
 
 ---
 
