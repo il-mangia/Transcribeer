@@ -57,19 +57,13 @@ Available builds:
 
 ## 🛠 Requirements
 
-### Whisper  
-Already included inside the app.
+### Transcriptor model  
+Already included inside the zip app.
 
 ### FFmpeg (required)  
-Used to preprocess and normalize audio before sending it to Whisper.
-
----
-
-## ⚙️ FFmpeg Installation
-
+Used to preprocess and normalize audio before trascribing. To install it:
 ### Windows (winget)  
 winget install Gyan.FFmpeg
-
 ### Windows (manual)  
 Download from: https://www.gyan.dev/ffmpeg/builds/  
 Extract it and add the 'bin/' folder to your system PATH.
