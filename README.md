@@ -2,7 +2,7 @@
   <img src="logo.png" width="150" alt="Transcribeer Logo"/>
 </p>
 
-<h1 align="center">Transcribeer</h1>
+<h1 align="center">Transcribeer - ITALIANO</h1>
 
 <p align="center">
   The modern, multilingual audio-to-text & translation tool powered by Whisper.<br>
@@ -62,26 +62,11 @@ Already included inside the zip app.
 
 ### FFmpeg (required)  
 Used to preprocess and normalize audio before trascribing. To install it:
-### Windows (winget)  
+Windows (winget)  
 winget install Gyan.FFmpeg
-### Windows (manual)  
-Download from: https://www.gyan.dev/ffmpeg/builds/  
-Extract it and add the 'bin/' folder to your system PATH.
-
----
-
-### Linux (Ubuntu / Debian)  
+Linux (Ubuntu / Debian)  
 sudo apt update  
-sudo apt install ffmpeg  
-
-### Linux (Arch)  
-sudo pacman -S ffmpeg  
-
-### Linux (Fedora / RHEL)  
-sudo dnf install ffmpeg  
-
-### Linux (OpenSUSE)  
-sudo zypper install ffmpeg  
+sudo apt install ffmpeg 
 
 ---
 
@@ -89,29 +74,25 @@ sudo zypper install ffmpeg
 
 ### 🪟 Windows  
 1. Download the latest release  
-2. Run the .exe OR extract the .zip portable build  
+2. Extract the zipped folder  
 3. Open Transcribeer.exe
 
 ---
 
 ### 🐧 Linux
 
-#### AppImage  
-chmod +x Transcribeer-x86_64.AppImage  
-./Transcribeer-x86_64.AppImage  
-
-#### tar.gz  
-tar -xvf Transcribeer-linux.tar.gz  
-cd Transcribeer  
-./Transcribeer  
+#### AppImage
+(Open terminal in the extract folder)
+chmod +x Transcribeer.AppImage  
+./Transcribeer.AppImage
 
 ---
 
 ## 🧠 How It Works
 
 1. FFmpeg converts your audio to WAV 16 kHz mono  
-2. Whisper transcribes and auto-detects the language  
-3. Transcript is translated into the selected target language  
+2. Vosk (https://alphacephei.com/vosk/) transcribes and auto-detects the language  
+3. Transcript is translated into italian only
 4. Both original and translated text are shown  
 5. You can save everything into a .txt file  
 
