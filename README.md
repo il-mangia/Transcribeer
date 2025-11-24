@@ -2,7 +2,7 @@
   <img src="logo.png" width="150" alt="Transcribeer Logo"/>
 </p>
 
-<h1 align="center">Transcribeer - ITALIANO</h1>
+<h1 align="center">Transcribeer (BETA, Source Code ONLY)</h1>
 
 <p align="center">
   The modern, multilingual audio-to-text & translation tool powered by Whisper.<br>
