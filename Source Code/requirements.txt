@@ -1,0 +1,12 @@
+customtkinter
+vosk
+pydub
+os
+json
+threading
+zipfile
+io
+locale
+PIL
+request
+webbrowser
