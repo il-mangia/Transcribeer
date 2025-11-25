@@ -12,12 +12,9 @@
 <p align="center">
   <a href="#-features">Features</a> •
   <a href="#-download--installation">Download and Install</a> •
-  <a href="#-requirements">Requirements</a> •
   <a href="#-how-it-works">How It Works</a> •
-  <a href="#-languages--models">Languages & Models</a> •
-  <a href="#-ai-enhancement">AI Enhancement</a> •
-  <a href="#-project-structure">Project Structure</a> •
-  <a href="#-troubleshooting">Troubleshooting</a> •
+  <a href="#-languages--ui">Languages & Models</a> •
+  <a href="#ai-enhancement)">AI Enhancement</a> •
   <a href="#️-license">License</a>
 </p>
 
@@ -103,6 +100,21 @@ Supported languages:
 🇨🇳 Chinese	(cn) - Vosk Small CN 0.22
 
 ---
+## 🤖AI Enhancement
+Transcribeer can enhance your transcripts using Google's Gemini AI.
+Get API Key:
+1. Visit Google AI Studio
+2. Create free account and generate API key
+3. Configure in App:
+4. Click "AI" button in main interface
+5. Enter your API key when prompted
+6. Key is saved locally for future use
+
+What AI Improves:
+1. Punctuation: Adds proper periods, commas, question marks
+2. Capitalization: Correct sentence case
+3. Readability: Improves text flow and naturalness
+4. Preservation: Maintains original meaning and content
 
 ## 🔧 Development Setup (Source code folder)
 
