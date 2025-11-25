@@ -14,7 +14,7 @@
   <a href="#-download--installation">Download and Install</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#-languages--ui">Languages & Models</a> •
-  <a href="#ai-enhancement)">AI Enhancement</a> •
+  <a href="#ai-enhancement">AI Enhancement</a> •
   <a href="#️-license">License</a>
 </p>
 
