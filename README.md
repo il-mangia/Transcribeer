@@ -56,7 +56,7 @@
 - Windows 10 or later
 - FFmpeg (`winget install Gyan.FFmpeg`)
 
-**Download:**
+**Transcribeer:**
 👉 [Latest Windows Release](https://github.com/il-mangia/Transcribeer/releases)
 
 ### Linux
@@ -64,7 +64,7 @@
 - Ubuntu/Debian: `sudo apt install ffmpeg`
 - Fedora: `sudo dnf install ffmpeg`
 - Arch: `sudo pacman -S ffmpeg`
-**Download:**
+**Transcribeer:**
 👉 [Latest Linux Release](https://github.com/il-mangia/Transcribeer/releases)
 
 ### From source code folder (dev only)
