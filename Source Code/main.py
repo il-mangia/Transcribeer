@@ -9,134 +9,141 @@ import threading
 import zipfile
 import io
 import locale
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageTk
 import requests
+import webbrowser
 
-# Impostazioni tema CTk
-ctk.set_appearance_mode("system")   # Automatico
-ctk.set_default_color_theme("blue") # Elegante e moderno
+# ============================
+#  CARICAMENTO TRADUZIONI JSON
+# ============================
 
-# Variabile globale per mantenere l'immagine del logo
-GLOBAL_LOGO_IMAGES = {'ui': None, 'icon': None}
+TRANSLATION_FILE = "translations.json"
 
-# === DIZIONARIO DI TRADUZIONI UI ===
-TRANSLATIONS = {
-    'it': {
-        'language_name': "Italiano",
-        'app_name': "Transcribeer",
-        'setup_title': "Setup Modello Vosk",
-        'setup_prompt': "Scegli la lingua per la trascrizione:",
-        'status_verify': "Verifica modello...",
-        'status_found': "Modello '%s' già installato.",
-        'status_not_found': "Modello '%s' non trovato, pronto per il download.",
-        'btn_start': "Avvia Trascrizione",
-        'btn_download_start': "Scarica e Avvia",
-        'status_loading': "Caricamento modello '%s'...",
-        'status_downloading': "Download modello '%s'...",
-        'status_download_progress': "Scaricati %.2fMB / %.2fMB",
-        'status_extracting': "Estrazione file...",
-        'btn_retry': "Riprova",
-        'app_title': " (Vosk - %s Offline)",
-        'lang_active': "Lingua Attiva: %s",
-        'select_file_prompt': "Seleziona File Audio:",
-        'btn_browse': "Sfoglia",
-        'btn_transcribe': "AVVIA TRASCRIZIONE",
-        'status_ready': "Pronto per la trascrizione.",
-        'status_transcribing': "Trascrizione in corso...",
-        'status_converting_wait': "Conversione di %s (circa %s)...",
-        'status_listening': "Analisi in corso...",
-        'status_transcribed': "Aggiunto: '%s'",
-        'status_complete': "Trascrizione completata!",
-        'result_title': "Risultato:",
-        'result_footer': "\n\n==============================\nTrascrizione completata.",
-        'error_select_file': "Seleziona un file audio prima.",
-        'error_pydub': "Errore di conversione audio.",
-        'error_critical': "Errore fatale.",
-        'error_download_extract': "Errore download/estrazione: %s",
-        'error_model_load': "Impossibile caricare modello '%s'. Dettagli: %s",
-        'error_logo': "logo.png non trovato.",
-        'time_sec': "secondi",
-        'time_min_sec': "minuti e %s secondi",
-        'time_audio_format': "%sm %ss"
-    }
-    # (qui restano TUTTE le altre lingue, identiche al tuo file originale)
-}
+def load_translations():
+    if not os.path.exists(TRANSLATION_FILE):
+        raise FileNotFoundError("translations.json non trovato!")
+    with open(TRANSLATION_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-# Mappa lingue
-MODEL_MAPPING = {
-    TRANSLATIONS['it']['language_name']: 'it',
-}
+TRANSLATIONS = load_translations()
 
-# Config modelli (italiano per ora, le altre saranno aggiunte nella parte 2)
-MODEL_CONFIG = {
-    'it': {
-        "folder": "model_it",
-        "url": "https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip"
-    }
-}
+# ============================
+#  RILEVAZIONE AUTOMATICA LINGUA OS
+# ============================
 
-# Ottieni lingua di default
-def get_system_default_language_code():
+def get_system_language_code():
     try:
-        code = locale.getdefaultlocale()[0].split('_')[0]
-        if code in MODEL_CONFIG:
-            return code
+        lang = locale.getdefaultlocale()[0]
+        if not lang:
+            return "it"
+        lang = lang.split("_")[0].lower()
+        if lang in TRANSLATIONS:
+            return lang
+        # mapping lingue simili
+        if lang.startswith("en"): return "en"
+        if lang.startswith("it"): return "it"
+        if lang.startswith("fr"): return "fr"
+        if lang.startswith("es"): return "es"
+        if lang.startswith("pt"): return "pt"
+        if lang.startswith("de"): return "de"
+        if lang.startswith("ru"): return "ru"
+        if lang.startswith("zh") or lang.startswith("cn"): return "cn"
     except:
         pass
     return "it"
 
-DEFAULT_LANGUAGE_CODE = get_system_default_language_code()
-T = TRANSLATIONS[DEFAULT_LANGUAGE_CODE]
+DEFAULT_LANGUAGE_CODE = get_system_language_code()
+T = TRANSLATIONS.get(DEFAULT_LANGUAGE_CODE, TRANSLATIONS["it"])
 
-# =========================
-# FUNZIONE LOGO ARROTONDATO
-# =========================
+# ============================
+#  MODEL MAPPING (UI → codice interno)
+# ============================
+
+MODEL_MAPPING = {
+    TRANSLATIONS["it"]["language_name"]: "it",
+    TRANSLATIONS["en"]["language_name"]: "en",
+    TRANSLATIONS["cn"]["language_name"]: "cn",
+    TRANSLATIONS["ru"]["language_name"]: "ru",
+    TRANSLATIONS["fr"]["language_name"]: "fr",
+    TRANSLATIONS["de"]["language_name"]: "de",
+    TRANSLATIONS["es"]["language_name"]: "es",
+    TRANSLATIONS["pt"]["language_name"]: "pt"
+}
+
+# ============================
+#  MODEL CONFIG (link download)
+# ============================
+
+MODEL_CONFIG = {
+    "it": {
+        "folder": "model_it",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip"
+    },
+    "en": {
+        "folder": "model_en",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+    },
+    "cn": {
+        "folder": "model_cn",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip"
+    },
+    "ru": {
+        "folder": "model_ru",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip"
+    },
+    "fr": {
+        "folder": "model_fr",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
+    },
+    "de": {
+        "folder": "model_de",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-de-zamia-0.3.zip"
+    },
+    "es": {
+        "folder": "model_es",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip"
+    },
+    "pt": {
+        "folder": "model_pt",
+        "url": "https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip"
+    }
+}
+
+# ============================
+#  GESTIONE SETTINGS (API KEY)
+# ============================
+
+SETTINGS_FILE = "settings.json"
+
+def load_settings():
+    if not os.path.exists(SETTINGS_FILE):
+        return {"gemini_api_key": ""}
+    try:
+        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {"gemini_api_key": ""}
+
+def save_settings(data):
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# ============================
+#   LOGHI
+# ============================
+
+GLOBAL_LOGO_IMAGES = {"ui": None, "icon": None}
+
 def load_app_logo(master):
     try:
         img = Image.open("logo.png").convert("RGBA")
-
-        # Arrotondare i bordi (soft)
-        radius = 40  # angoli morbidi
-        w, h = img.size
-        circle = Image.new("L", (w, h), 0)
-        mask = ImageOps.expand(circle, 0)
-        rounded = Image.new("RGBA", img.size)
-        for x in range(w):
-            for y in range(h):
-                dx = min(x, w - x - 1)
-                dy = min(y, h - y - 1)
-                if dx < radius and dy < radius:
-                    if (dx*dx + dy*dy) < (radius*radius):
-                        pass
-                mask.putpixel((x, y), 255)
-
-        img.putalpha(mask)
-
-        # UI image
-        ui_img = img.resize((120,120), Image.LANCZOS)
-        GLOBAL_LOGO_IMAGES['ui'] = ImageTk.PhotoImage(ui_img)
-
-        # Icona finestra 32x32
-        icon_img = img.resize((32,32), Image.LANCZOS)
-        GLOBAL_LOGO_IMAGES['icon'] = ImageTk.PhotoImage(icon_img)
-
-        master.iconphoto(True, GLOBAL_LOGO_IMAGES['icon'])
-
-    except FileNotFoundError:
-        print(T['error_logo'])
-
-# ============================
-# FUNZIONE PUNTEGGIATURA
-# ============================
-def add_simple_punctuation(text):
-    if not text:
-        return text
-    text = text.strip()
-    text = text[0].upper() + text[1:]
-    if len(text.split()) > 3 and text[-1] not in ".?!":
-        text += "."
-    return text
-
+        ui = img.resize((120, 120))
+        icon = img.resize((32, 32))
+        GLOBAL_LOGO_IMAGES["ui"] = ImageTk.PhotoImage(ui)
+        GLOBAL_LOGO_IMAGES["icon"] = ImageTk.PhotoImage(icon)
+        master.iconphoto(True, GLOBAL_LOGO_IMAGES["icon"])
+    except:
+        print("logo.png non trovato.")
 # =============================================================
 # ============== FINESTRA DI SETUP (CUSTOMTKINTER) ============
 # =============================================================
@@ -147,9 +154,9 @@ class ModelSetupWindow:
         load_app_logo(master)
 
         master.title(T["app_name"] + " - " + T["setup_title"])
-        master.geometry("480x360")
+        master.geometry("480x380")
 
-        # Frame principale CTk
+        # Frame principale
         self.main_frame = ctk.CTkFrame(master, corner_radius=12)
         self.main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -161,28 +168,45 @@ class ModelSetupWindow:
         )
         self.title_label.pack(pady=(10, 15))
 
-        # Combobox Lingua
-        lang_names = list(MODEL_MAPPING.keys())
-        default_lang = TRANSLATIONS[DEFAULT_LANGUAGE_CODE]["language_name"]
+        # Lista lingue disponibili dalla traduzione JSON
+        lang_names = [TRANSLATIONS[key]["language_name"] for key in TRANSLATIONS]
+        default_lang_name = TRANSLATIONS[DEFAULT_LANGUAGE_CODE]["language_name"]
 
-        self.language_var = ctk.StringVar(value=default_lang)
+        self.language_var = ctk.StringVar(value=default_lang_name)
 
         self.language_combo = ctk.CTkOptionMenu(
             self.main_frame,
             values=lang_names,
             variable=self.language_var,
             height=40,
-            font=("Segoe UI", 14)
+            font=("Segoe UI", 14),
+            command=self.check_model_status
         )
         self.language_combo.pack(pady=10, fill="x", padx=10)
 
-        # Barra Progresso
+        # Barra progresso
         self.progress_var = ctk.DoubleVar(value=0)
         self.progress_bar = ctk.CTkProgressBar(self.main_frame)
         self.progress_bar.pack(pady=15, fill="x", padx=10)
         self.progress_bar.set(0)
 
-        # Etichetta Stato
+         # ========== LOADER ANIMATO ==========
+        self.loader_frames = []
+        self.loader_label = ctk.CTkLabel(self.main_frame, text="")
+        try:
+            import PIL.ImageSequence as ImageSequence
+            gif = Image.open("loader.gif")  # assicurati che il file si chiami così
+            for frame in ImageSequence.Iterator(gif):
+                fr = frame.copy().resize((64, 64), Image.LANCZOS)
+                self.loader_frames.append(ImageTk.PhotoImage(fr))
+        except Exception as e:
+            print("Errore GIF loader:", e)
+            self.loader_frames = []
+
+        self.loader_running = False
+        self.loader_index = 0
+
+        # Stato
         self.status_label = ctk.CTkLabel(
             self.main_frame,
             text=T["status_verify"],
@@ -190,7 +214,7 @@ class ModelSetupWindow:
         )
         self.status_label.pack(pady=(0, 10))
 
-        # Bottone Azione
+        # Bottone azione
         self.action_button = ctk.CTkButton(
             self.main_frame,
             text=T["btn_start"],
@@ -200,215 +224,211 @@ class ModelSetupWindow:
         )
         self.action_button.pack(pady=10, fill="x", padx=20)
 
-        # Evento cambio lingua
-        self.language_combo.bind("<<ComboboxSelected>>", self.check_model_status)
-
-        # Avvia verifica
+        # Avvio controllo iniziale
         self.check_model_status()
 
-    # ---------------------------------------------------------
-    # Controlla se modello esiste
-    # ---------------------------------------------------------
+    # -----------------------------------------------------------
+    # Controllo stato del modello
+    # -----------------------------------------------------------
     def check_model_status(self, event=None):
-        lang_name = self.language_var.get()
-        lang_code = MODEL_MAPPING[lang_name]
-        model_path = MODEL_CONFIG[lang_code]['folder']
+        lang_ui = self.language_var.get()
 
-        self.T = TRANSLATIONS[DEFAULT_LANGUAGE_CODE]
+        # trova il codice modello dal nome lingua UI
+        for code, data in TRANSLATIONS.items():
+            if data["language_name"] == lang_ui:
+                selected_code = code
+                break
+
+        # mapping UI → modello Vosk
+        model_code = MODEL_MAPPING[lang_ui]
+        model_path = MODEL_CONFIG[model_code]["folder"]
 
         if os.path.exists(model_path):
-            self.status_label.configure(
-                text=self.T["status_found"] % lang_name
-            )
+            self.status_label.configure(text=T["status_found"] % lang_ui)
             self.progress_bar.set(1)
-            self.action_button.configure(text=self.T["btn_start"])
+            self.action_button.configure(text=T["btn_start"])
         else:
-            self.status_label.configure(
-                text=self.T["status_not_found"] % lang_name
-            )
+            self.status_label.configure(text=T["status_not_found"] % lang_ui)
             self.progress_bar.set(0)
-            self.action_button.configure(text=self.T["btn_download_start"])
+            self.action_button.configure(text=T["btn_download_start"])
 
-    # ---------------------------------------------------------
-    # Avvia download o caricamento
-    # ---------------------------------------------------------
+    # -----------------------------------------------------------
+    # Avvio installazione modello
+    # -----------------------------------------------------------
     def start_model_setup(self):
-        lang_name = self.language_var.get()
-        lang_code = MODEL_MAPPING[lang_name]
-        model_info = MODEL_CONFIG[lang_code]
+        lang_ui = self.language_var.get()
 
-        self.app_lang_code = lang_code
-        self.T = TRANSLATIONS[lang_code]
+        # trova codice config
+        model_code = MODEL_MAPPING[lang_ui]
+        config = MODEL_CONFIG[model_code]
+
+        self.lang_code = model_code
+        self.TL = TRANSLATIONS.get(model_code, TRANSLATIONS["it"])
 
         self.action_button.configure(state="disabled")
 
-        if os.path.exists(model_info["folder"]):
-            self.status_label.configure(
-                text=self.T["status_loading"] % lang_name
-            )
+        if os.path.exists(config["folder"]):
+            self.status_label.configure(text=self.TL["status_loading"] % lang_ui)
             threading.Thread(
                 target=self._load_model_and_start_app,
-                args=(model_info["folder"], lang_name)
+                args=(config["folder"], lang_ui),
+                daemon=True
             ).start()
         else:
-            self.status_label.configure(
-                text=self.T["status_downloading"] % lang_name
-            )
+            self.status_label.configure(text=self.TL["status_downloading"] % lang_ui)
             threading.Thread(
-                target=self._download_and_load,
-                args=(model_info, lang_name)
+                target=self._download_and_extract,
+                args=(config, lang_ui),
+                daemon=True
             ).start()
 
-    # ---------------------------------------------------------
-    # Download zip + estrazione
-    # ---------------------------------------------------------
-    def _download_and_load(self, model_info, lang_name):
-        url = model_info["url"]
-        path = model_info["folder"]
+    # -----------------------------------------------------------
+    # Download + estrazione
+    # -----------------------------------------------------------
+    def _download_and_extract(self, config, lang_ui):
+        url = config["url"]
+        folder = config["folder"]
 
         try:
-            T2 = TRANSLATIONS[self.app_lang_code]
-
             r = requests.get(url, stream=True)
             r.raise_for_status()
 
             total = int(r.headers.get("content-length", 0))
             downloaded = 0
-            data = io.BytesIO()
+            buffer = io.BytesIO()
 
             for chunk in r.iter_content(8192):
                 if chunk:
-                    data.write(chunk)
+                    buffer.write(chunk)
                     downloaded += len(chunk)
-                    perc = downloaded / total
+
+                    perc = downloaded / total if total else 0
+                    mb1 = downloaded / 1024 / 1024
+                    mb2 = total / 1024 / 1024
+
                     self.master.after(0, lambda v=perc: self.progress_bar.set(v))
-                    
-                    mb1 = downloaded / (1024*1024)
-                    mb2 = total / (1024*1024)
                     self.master.after(0, lambda:
                         self.status_label.configure(
-                            text=T2["status_download_progress"] % (mb1, mb2)
+                            text=self.TL["status_download_progress"] % (mb1, mb2)
                         )
                     )
 
-            # Estrazione
-            self.master.after(
-                0, lambda: self.status_label.configure(text=T2["status_extracting"])
+            self.master.after(0, lambda:
+                self.status_label.configure(text=self.TL["status_extracting"])
             )
 
-            with zipfile.ZipFile(data) as z:
-                folder_name = next(name.split('/')[0] for name in z.namelist() if '/' in name)
-                os.makedirs(path, exist_ok=True)
-                z.extractall(path)
-                extracted = os.path.join(path, folder_name)
+            # Estrazione
+            with zipfile.ZipFile(buffer) as z:
+                folder_name = next(n.split('/')[0] for n in z.namelist() if '/' in n)
+                os.makedirs(folder, exist_ok=True)
+                z.extractall(folder)
 
-                for item in os.listdir(extracted):
-                    os.rename(os.path.join(extracted, item), os.path.join(path, item))
+                extracted = os.path.join(folder, folder_name)
+
+                for f in os.listdir(extracted):
+                    os.rename(os.path.join(extracted, f), os.path.join(folder, f))
+
                 os.rmdir(extracted)
 
             self.master.after(0, lambda:
-                self._load_model_and_start_app(path, lang_name)
+                self._load_model_and_start_app(folder, lang_ui)
             )
 
         except Exception as e:
-            msg = T2["error_download_extract"] % str(e)
+            msg = self.TL["error_download_extract"] % str(e)
+            self.master.after(0, lambda: messagebox.showerror("Errore", msg))
             self.master.after(0, lambda:
-                messagebox.showerror("Errore", msg)
-            )
-            self.master.after(0, lambda:
-                self.action_button.configure(state="normal", text=T2["btn_retry"])
+                self.action_button.configure(state="normal", text=self.TL["btn_retry"])
             )
 
-    # ---------------------------------------------------------
-    # Carica modello e apre finestra principale
-    # ---------------------------------------------------------
-    def _load_model_and_start_app(self, path, lang_name):
-        T2 = TRANSLATIONS[self.app_lang_code]
-
+    # -----------------------------------------------------------
+    # Caricamento modello + apertura app
+    # -----------------------------------------------------------
+    def _load_model_and_start_app(self, folder, lang_ui):
         try:
-            model_instance = Model(path)
+            model = Model(folder)
 
-            # Nasconde finestra
             self.master.withdraw()
 
-            # Nuova finestra main
             root_app = ctk.CTkToplevel(self.master)
-            TranscriberApp(root_app, model_instance, lang_name, self.app_lang_code)
+            TranscriberApp(root_app, model, lang_ui, self.lang_code)
 
         except Exception as e:
-            msg = T2["error_model_load"] % (path, str(e))
+            msg = self.TL["error_model_load"] % (folder, str(e))
             self.master.after(0, lambda:
                 messagebox.showerror("Errore", msg)
             )
             self.master.after(0, lambda:
-                self.action_button.configure(state="normal", text=T2["btn_retry"])
+                self.action_button.configure(state="normal", text=self.TL["btn_retry"])
             )
 # =============================================================
 # ================== FINESTRA PRINCIPALE CTk ==================
 # =============================================================
 
 class TranscriberApp:
-    def __init__(self, master, model_instance, lang_name, lang_code):
+    def __init__(self, master, model_instance, lang_ui, lang_code):
         self.master = master
-        self.T = TRANSLATIONS[lang_code]
         self.model = model_instance
+        self.lang_ui = lang_ui
+        self.lang_code = lang_code
+        self.T = TRANSLATIONS.get(lang_code, TRANSLATIONS["it"])
+
         self.transcribing = False
 
         load_app_logo(master)
 
-        master.title(self.T["app_name"] + self.T["app_title"] % lang_name)
-        master.geometry("820x620")
+        master.title(self.T["app_name"] + self.T["app_title"] % lang_ui)
+        master.geometry("900x650")
 
-        # Configurazione griglia
+        # Griglia finestra
         master.grid_rowconfigure(0, weight=1)
         master.grid_columnconfigure(0, weight=1)
 
-        # Frame principale
         self.main_frame = ctk.CTkFrame(master, corner_radius=12)
-        self.main_frame.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
+        self.main_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
 
-        for r in range(10):
-            self.main_frame.grid_rowconfigure(r, weight=0 if r < 7 else 1)
+        # Imposta griglia interna
+        for r in range(12):
+            self.main_frame.grid_rowconfigure(r, weight=0 if r < 8 else 1)
         self.main_frame.grid_columnconfigure(0, weight=1)
 
         # =======================
-        # 0. Logo + Titolo
+        # LOGO + TITOLO
         # =======================
         logo_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        logo_frame.grid(row=0, column=0, sticky="w", pady=(0, 10))
+        logo_frame.grid(row=0, column=0, sticky="w", pady=(0, 15))
 
-        # Logo UI
         if GLOBAL_LOGO_IMAGES["ui"]:
-            ctk.CTkLabel(logo_frame, image=GLOBAL_LOGO_IMAGES["ui"], text="").grid(
-                row=0, column=0, padx=(0, 15)
-            )
+            ctk.CTkLabel(
+                logo_frame,
+                image=GLOBAL_LOGO_IMAGES["ui"],
+                text=""
+            ).grid(row=0, column=0, padx=(0, 20))
 
-        # Titolo
         ctk.CTkLabel(
             logo_frame,
             text=self.T["app_name"],
-            font=("Segoe UI", 30, "bold")
+            font=("Segoe UI", 34, "bold")
         ).grid(row=0, column=1, sticky="w")
 
-        # Lingua attiva
         ctk.CTkLabel(
             logo_frame,
-            text=self.T["lang_active"] % lang_name,
-            font=("Segoe UI", 13),
-            text_color="#1483e3"
+            text=self.T["lang_active"] % lang_ui,
+            font=("Segoe UI", 14),
+            text_color="#0095ff"
         ).grid(row=1, column=1, sticky="nw")
 
         # =======================
-        # 1. Selettore file
+        # SELEZIONE FILE
         # =======================
         ctk.CTkLabel(
             self.main_frame,
             text=self.T["select_file_prompt"],
-            font=("Segoe UI", 15, "bold")
+            font=("Segoe UI", 16, "bold")
         ).grid(row=1, column=0, sticky="w", padx=5)
 
         file_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        file_frame.grid(row=2, column=0, sticky="ew", pady=5)
+        file_frame.grid(row=2, column=0, sticky="ew", pady=(5, 10))
         file_frame.grid_columnconfigure(0, weight=1)
 
         self.file_path = tk.StringVar()
@@ -416,136 +436,145 @@ class TranscriberApp:
         self.file_entry = ctk.CTkEntry(
             file_frame,
             textvariable=self.file_path,
-            height=38,
-            font=("Segoe UI", 13)
+            font=("Segoe UI", 14),
+            height=40
         )
-        self.file_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        self.file_entry.grid(row=0, column=0, sticky="ew", padx=(0, 10))
 
         self.browse_btn = ctk.CTkButton(
             file_frame,
             text=self.T["btn_browse"],
-            width=110,
-            height=38,
-            font=("Segoe UI", 13, "bold"),
+            font=("Segoe UI", 14, "bold"),
+            width=120,
+            height=40,
             command=self.select_file
         )
         self.browse_btn.grid(row=0, column=1)
 
         # =======================
-        # 2. Pulsante trascrivi
+        # BOTTONE TRASCRIZIONE
         # =======================
         self.transcribe_button = ctk.CTkButton(
             self.main_frame,
             text=self.T["btn_transcribe"],
-            height=45,
-            font=("Segoe UI", 16, "bold"),
+            font=("Segoe UI", 18, "bold"),
+            height=50,
             command=self.start_transcription
         )
-        self.transcribe_button.grid(row=3, column=0, sticky="ew", pady=10)
+        self.transcribe_button.grid(row=3, column=0, sticky="ew", pady=(5, 15))
 
         # =======================
-        # 3. Barra progresso
+        # BARRA PROGRESSO
         # =======================
         self.progress_var = ctk.DoubleVar(value=0)
         self.progress_bar = ctk.CTkProgressBar(
             self.main_frame,
             variable=self.progress_var
         )
-        self.progress_bar.grid(row=4, column=0, sticky="ew", pady=12)
+        self.progress_bar.grid(row=4, column=0, sticky="ew", pady=(10, 10))
         self.progress_bar.set(0)
 
         # =======================
-        # 4. Stato
+        # STATO
         # =======================
         self.status_label = ctk.CTkLabel(
             self.main_frame,
             text=self.T["status_ready"],
-            font=("Segoe UI", 13, "italic"),
-            text_color="#1483e3"
+            font=("Segoe UI", 14, "italic"),
+            text_color="#0095ff"
         )
-        self.status_label.grid(row=5, column=0, sticky="w", padx=5, pady=(0,10))
+        self.status_label.grid(row=5, column=0, sticky="w", padx=5)
 
         # =======================
-        # 5. Etichetta testo
+        # RISULTATO (TEXTBOX)
         # =======================
         ctk.CTkLabel(
             self.main_frame,
             text=self.T["result_title"],
-            font=("Segoe UI", 15, "bold")
-        ).grid(row=6, column=0, sticky="w", padx=5)
+            font=("Segoe UI", 17, "bold")
+        ).grid(row=6, column=0, sticky="w", padx=5, pady=(10, 5))
 
-        # =======================
-        # 6. Textbox (area output)
-        # =======================
         self.text_box = ctk.CTkTextbox(
             self.main_frame,
-            corner_radius=8,
-            font=("Segoe UI", 14),
+            corner_radius=10,
+            font=("Segoe UI", 15),
             wrap="word"
         )
-        self.text_box.grid(row=7, column=0, sticky="nsew", padx=5, pady=(5, 10))
+        self.text_box.grid(row=7, column=0, sticky="nsew", padx=5, pady=(5, 5))
+
+        # --- abilita la griglia a crescere ---
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(7, weight=1)
 
         # =======================
-        # 7. Due bottoni finali
+        # BOTTONI FINALI
         # =======================
         bottom_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        bottom_frame.grid(row=8, column=0, pady=(5, 5), sticky="ew")
+        bottom_frame.grid(row=8, column=0, sticky="ew", pady=(10, 10))
         bottom_frame.grid_columnconfigure(0, weight=1)
         bottom_frame.grid_columnconfigure(1, weight=1)
 
-        # "Sistema con AI" (disabled all'inizio)
+        # AI
         self.ai_button = ctk.CTkButton(
             bottom_frame,
-            text="Sistema con AI",
-            height=40,
+            text="AI",
+            font=("Segoe UI", 15),
+            height=44,
             state="disabled",
-            font=("Segoe UI", 14)
+            command=self.use_ai_system
         )
-        self.ai_button.grid(row=0, column=0, padx=10, sticky="ew")
+        self.ai_button.grid(row=0, column=0, sticky="ew", padx=5)
 
-        # "Copia tutto" (disabled all'inizio)
+        # COPY
         self.copy_button = ctk.CTkButton(
             bottom_frame,
-            text="Copia tutto",
-            height=40,
+            text="Copy",
+            font=("Segoe UI", 15),
+            height=44,
             state="disabled",
-            font=("Segoe UI", 14),
             command=self.copy_text
         )
-        self.copy_button.grid(row=0, column=1, padx=10, sticky="ew")
-
+        self.copy_button.grid(row=0, column=1, sticky="ew", padx=10)
     # ---------------------------------------------------------
-    # Selettore file
+    # FILE PICKER
     # ---------------------------------------------------------
     def select_file(self):
-        filetypes = [
-            ("Audio files", "*.mp3 *.wav *.aac *.flac *.ogg *.m4a")
-        ]
-        filename = filedialog.askopenfilename(filetypes=filetypes)
-        if filename:
-            self.file_path.set(filename)
+        types = [("Audio files", "*.mp3 *.wav *.m4a *.ogg *.flac")]
+        f = filedialog.askopenfilename(filetypes=types)
+        if f:
+            self.file_path.set(f)
             self.text_box.delete("1.0", "end")
-            self.status_label.configure(
-                text=self.T["status_ready"], text_color="#1483e3"
-            )
+            self.status_label.configure(text=self.T["status_ready"], text_color="#0095ff")
 
     # ---------------------------------------------------------
-    # Copia tutto il testo
+    # COPY TEXT
     # ---------------------------------------------------------
     def copy_text(self):
-        all_text = self.text_box.get("1.0", "end")
+        txt = self.text_box.get("1.0", "end")
         self.master.clipboard_clear()
-        self.master.clipboard_append(all_text)
+        self.master.clipboard_append(txt)
 
     # ---------------------------------------------------------
-    # Avvia trascrizione
+    # ANIMATE LOADER
+    # ---------------------------------------------------------
+    def animate_loader(self):
+        if not self.loader_running:
+            return
+        if self.loader_frames:
+            self.loader_label.configure(image=self.loader_frames[self.loader_index])
+            self.loader_index = (self.loader_index + 1) % len(self.loader_frames)
+        self.master.after(70, self.animate_loader)
+
+
+    # ---------------------------------------------------------
+    # START TRANSCRIPTION
     # ---------------------------------------------------------
     def start_transcription(self):
-        filepath = self.file_path.get()
-        if not filepath:
+        fp = self.file_path.get()
+        if not fp:
             self.status_label.configure(
                 text=self.T["error_select_file"],
-                text_color="#d63b3b"
+                text_color="#ff4444"
             )
             return
 
@@ -555,131 +584,142 @@ class TranscriberApp:
         self.transcribing = True
         self.progress_var.set(0)
         self.text_box.delete("1.0", "end")
+
+        # disabilita bottoni
         self.ai_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
+        self.transcribe_button.configure(state="disabled")
 
-        self.transcribe_button.configure(
-            state="disabled",
-            text=self.T["status_transcribing"]
-        )
         self.status_label.configure(
             text=self.T["status_transcribing"],
-            text_color="#f0a000"
+            text_color="#ffaa00"
         )
+        self.transcribe_button.configure(text=self.T["status_transcribing"])
+
+        # Mostra il loader
+        self.loader_running = True
+        self.loader_label.grid(row=5, column=0, sticky="e", padx=10)
+        self.animate_loader()
 
         threading.Thread(
             target=self.transcribe_audio_threaded,
-            args=(filepath,),
+            args=(fp,),
             daemon=True
         ).start()
 
     # ---------------------------------------------------------
-    # QUI C'È LA TUA FUNZIONE ORIGINALE (identica)
+    # PUNTEGGIATURA EASY
     # ---------------------------------------------------------
-    def transcribe_audio_threaded(self, filepath):
-        # ——— TUTTA LA TUA FUNZIONE ORIGINALE RESTA IDENTICA ———
-        # Nel messaggio successivo (PARTE 4/4)
-        # te la mando integra, già compatibile con CTk.
-        pass
+    def add_simple_punctuation(self, t):
+        if not t:
+            return t
+        t = t.strip()
+        if not t:
+            return t
+        t = t[0].upper() + t[1:]
+        if len(t.split()) > 3 and t[-1] not in ".?!":
+            t += "."
+        return t
+
     # ---------------------------------------------------------
-    # FUNZIONE DI TRASCRIZIONE (IDENTICA ALLA TUA)
+    # MAIN TRANSCRIPTION FUNCTION (THREAD)
     # ---------------------------------------------------------
     def transcribe_audio_threaded(self, filepath):
         temp_wav_file = "temp_audio_16k.wav"
-
+        self.loader_running = False
+        self.loader_label.grid_forget()
         try:
-            # 1. Conversione audio
+            # 1) Conversione audio
             audio = AudioSegment.from_file(filepath)
 
             duration_ms = len(audio)
             duration_sec = duration_ms / 1000
 
-            estimated_wait_time = max(duration_sec * 2.5, 5)
+            estimated_wait = max(duration_sec * 2.5, 5)
 
-            if estimated_wait_time < 60:
-                wait_str = f"{int(estimated_wait_time)} {self.T['time_sec']}"
+            if estimated_wait < 60:
+                wait_str = f"{int(estimated_wait)} {self.T['time_sec']}"
             else:
-                minutes = int(estimated_wait_time // 60)
-                seconds = int(estimated_wait_time % 60)
+                minutes = int(estimated_wait // 60)
+                seconds = int(estimated_wait % 60)
                 wait_str = f"{minutes} {self.T['time_min_sec'] % seconds}"
 
             audio_minutes = int(duration_sec // 60)
             audio_seconds = int(duration_sec % 60)
-            audio_duration_str = self.T['time_audio_format'] % (audio_minutes, audio_seconds)
+            audio_dur_str = self.T['time_audio_format'] % (audio_minutes, audio_seconds)
 
-            status_message = self.T['status_converting_wait'] % (audio_duration_str, wait_str)
-            self.master.after(0, lambda: self.status_label.configure(text=status_message, text_color="#f0a000"))
+            msg = self.T['status_converting_wait'] % (audio_dur_str, wait_str)
+            self.master.after(0, lambda:
+                self.status_label.configure(text=msg, text_color="#ffaa00")
+            )
 
+            # converti
             audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
             audio.export(temp_wav_file, format="wav")
 
-            # 2. Init riconoscitore
+            # 2) Setup riconoscitore Vosk
             rec = KaldiRecognizer(self.model, 16000)
 
-            # 3. Segmenti
+            # 3) Lettura file WAV
             self.master.after(0, lambda:
-                self.status_label.configure(text=self.T["status_listening"], text_color="#37b24d")
+                self.status_label.configure(text=self.T["status_listening"], text_color="#22bb55")
             )
 
             total_size = os.path.getsize(temp_wav_file)
             bytes_read = 0
 
             with open(temp_wav_file, "rb") as wf:
-                wf.read(44)  # skip header
-                CHUNK_SIZE = 80000
+                wf.read(44)  # salta header WAV
+                CHUNK = 80000
 
                 while True:
-                    data = wf.read(CHUNK_SIZE)
+                    data = wf.read(CHUNK)
                     if not data:
                         break
 
                     if rec.AcceptWaveform(data):
                         result = json.loads(rec.Result())
-                        text_part = result.get("text", "")
+                        text_piece = result.get("text", "")
 
-                        if text_part:
-                            punctuated = add_simple_punctuation(text_part)
+                        if text_piece:
+                            punct = self.add_simple_punctuation(text_piece)
 
-                            self.master.after(0, lambda t=punctuated + " ": 
+                            self.master.after(0, lambda t=punct + " ":
                                 self.text_box.insert("end", t)
                             )
 
-                            status_short = punctuated[-30:].strip() if len(punctuated) > 30 else punctuated.strip()
-                            self.master.after(0, lambda s=status_short:
-                                self.status_label.configure(text=self.T["status_transcribed"] % s, text_color="#37b24d")
+                            short = punct[-40:].strip() if len(punct) > 40 else punct
+                            self.master.after(0, lambda s=short:
+                                self.status_label.configure(
+                                    text=self.T["status_transcribed"] % s,
+                                    text_color="#22bb55"
+                                )
                             )
 
                     bytes_read += len(data)
                     perc = bytes_read / total_size
                     self.master.after(0, lambda v=perc: self.progress_bar.set(v))
 
-            # 4. Finale
-            result = json.loads(rec.FinalResult())
-            final_text = result.get("text", "")
-            final_punct = add_simple_punctuation(final_text)
+            # 4) Finale
+            final_res = json.loads(rec.FinalResult())
+            final_text = final_res.get("text", "")
+            final_punct = self.add_simple_punctuation(final_text)
 
             self.master.after(0, lambda:
                 self.text_box.insert("end", final_punct + self.T["result_footer"])
             )
             self.master.after(0, lambda:
-                self.status_label.configure(text=self.T["status_complete"], text_color="#1483e3")
+                self.status_label.configure(text=self.T["status_complete"], text_color="#0095ff")
             )
 
-        except FileNotFoundError:
-            self.master.after(0, lambda:
-                messagebox.showerror("Errore", self.T["error_pydub"])
-            )
-            self.master.after(0, lambda:
-                self.status_label.configure(text=self.T["error_critical"], text_color="#d63b3b")
-            )
         except Exception as e:
-            self.master.after(0, lambda:
-                messagebox.showerror("Errore Trascrizione", f"Errore: {e}")
-            )
-            self.master.after(0, lambda:
-                self.status_label.configure(text=self.T["error_critical"], text_color="#d63b3b")
-            )
             print("Errore trascrizione:", e)
+            self.master.after(0, lambda:
+                messagebox.showerror("Errore", f"Errore trascrizione: {e}")
+            )
+            self.master.after(0, lambda:
+                self.status_label.configure(text=self.T["error_critical"], text_color="#ff4444")
+            )
 
         finally:
             if os.path.exists(temp_wav_file):
@@ -689,13 +729,161 @@ class TranscriberApp:
             self.master.after(0, lambda:
                 self.transcribe_button.configure(state="normal", text=self.T["btn_transcribe"])
             )
-            self.master.after(0, lambda:
-                self.progress_bar.set(1)
-            )
-            # Abilita i 2 bottoni nuovi
+            self.master.after(0, lambda: self.progress_bar.set(1))
+
+            # abilita pulsanti finali
             self.master.after(0, lambda:
                 self.copy_button.configure(state="normal")
             )
+            self.master.after(0, lambda:
+                self.ai_button.configure(state="normal")
+            )
+    # =========================================================
+    # ====================== SISTEMA AI ========================
+    # =========================================================
+
+    def use_ai_system(self):
+        """Avvia la finestra per usare AI con Gemini."""
+        settings = load_settings()
+        api_key = settings.get("gemini_api_key", "")
+
+        if not api_key:
+            self.open_api_window()
+        else:
+            self.process_with_ai(api_key)
+
+    # ---------------------------------------------------------
+    # Finestra per inserire la API
+    # ---------------------------------------------------------
+    def open_api_window(self):
+        win = ctk.CTkToplevel(self.master)
+        win.title("Gemini API Key")
+        win.geometry("420x260")
+        win.grab_set()
+
+        ctk.CTkLabel(
+            win,
+            text="Inserisci la tua API Key Gemini:",
+            font=("Segoe UI", 16, "bold")
+        ).pack(pady=15)
+
+        api_var = ctk.StringVar()
+
+        entry = ctk.CTkEntry(
+            win,
+            textvariable=api_var,
+            width=350,
+            height=40,
+            font=("Segoe UI", 14)
+        )
+        entry.pack(pady=10)
+
+        def salva_api():
+            key = api_var.get().strip()
+            if not key:
+                messagebox.showerror("Errore", "Inserisci una API key valida.")
+                return
+
+            settings = load_settings()
+            settings["gemini_api_key"] = key
+            save_settings(settings)
+            win.destroy()
+            self.process_with_ai(key)
+
+        ctk.CTkButton(
+            win,
+            text="Salva",
+            height=40,
+            command=salva_api,
+            font=("Segoe UI", 14)
+        ).pack(pady=10)
+
+        def apri_google():
+            webbrowser.open("https://aistudio.google.com/api-keys")
+
+        ctk.CTkButton(
+            win,
+            text="Ottieni API Gemini",
+            height=40,
+            fg_color="#008cff",
+            command=apri_google
+        ).pack(pady=10)
+
+    # ---------------------------------------------------------
+    # Avvia processo AI
+    # ---------------------------------------------------------
+    def process_with_ai(self, api_key):
+        testo_originale = self.text_box.get("1.0", "end").strip()
+
+        if not testo_originale:
+            messagebox.showinfo("Info", "Non c'è testo da migliorare.")
+            return
+
+        self.ai_button.configure(state="disabled")
+        self.status_label.configure(text=self.T["ai_processing"], text_color="#ffaa00")
+
+        threading.Thread(
+            target=self._ai_thread,
+            args=(api_key, testo_originale),
+            daemon=True
+        ).start()
+
+    # ---------------------------------------------------------
+    # Thread AI con Gemini
+    # ---------------------------------------------------------
+    def _ai_thread(self, api_key, testo_originale):
+
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+            payload = {
+                "contents": [{
+                    "parts": [{
+                        "text":
+                        "Migliora la punteggiatura e la naturalezza di questo testo.\n"
+                        "Non cambiare significato, non aggiungere nulla.\n"
+                        "NON andare a capo.\n"
+                        "Rispondi SOLO con il testo corretto.\n"
+                        f"Testo: {testo_originale}"
+                    }]
+                }]
+            }
+
+            r = requests.post(url, json=payload)
+            r.raise_for_status()
+
+            data = r.json()
+            risposta = data["candidates"][0]["content"]["parts"][0]["text"]
+
+            # Salvataggio
+            with open("fine_ai.txt", "w", encoding="utf-8") as f:
+                f.write(risposta)
+
+            # Aggiornamento UI
+            self.master.after(0, lambda:
+                self.text_box.delete("1.0", "end")
+            )
+            self.master.after(0, lambda:
+                self.text_box.insert("end", risposta)
+            )
+            self.master.after(0, lambda:
+                self.status_label.configure(text=self.T["ai_done"], text_color="#22bb55")
+            )
+
+        except Exception as e:
+            print("Errore AI:", e)
+
+            with open("temp.txt", "w", encoding="utf-8") as f:
+                f.write(testo_originale)
+
+            self.master.after(0, lambda:
+                messagebox.showerror("Errore AI", "Qualcosa è andato storto, la trascrizione è salvata in temp.txt")
+            )
+            self.master.after(0, lambda:
+                self.status_label.configure(text=self.T["ai_error"], text_color="#ff4444")
+            )
+
+        finally:
             self.master.after(0, lambda:
                 self.ai_button.configure(state="normal")
             )
@@ -706,6 +894,9 @@ class TranscriberApp:
 # =============================================================
 
 if __name__ == "__main__":
+    ctk.set_appearance_mode("system")
+    ctk.set_default_color_theme("blue")
+
     root = ctk.CTk()
     ModelSetupWindow(root)
     root.mainloop()
