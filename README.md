@@ -11,9 +11,8 @@
 
 <p align="center">
   <a href="#-features">Features</a> •
-  <a href="#-download">Download</a> •
+  <a href="#-download--installation">Download and Install</a> •
   <a href="#-requirements">Requirements</a> •
-  <a href="#-installation">Installation</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#-languages--models">Languages & Models</a> •
   <a href="#-ai-enhancement">AI Enhancement</a> •
