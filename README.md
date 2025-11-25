@@ -2,11 +2,11 @@
   <img src="logo.png" width="150" alt="Transcribeer Logo"/>
 </p>
 
-<h1 align="center">Transcribeer (BETA, Source Code ONLY)</h1>
+<h1 align="center">Transcribeer</h1>
 
 <p align="center">
-  The modern, multilingual audio-to-text & translation tool powered by Whisper.<br>
-  Cross-platform for Windows and Linux, with a beautiful UI and automatic system-language detection.
+  The modern, multilingual audio-to-text transcription tool powered by Vosk.<br>
+  Cross-platform for Windows and Linux, with beautiful UI and AI-powered (GEMINI API REQUIRED) text enhancement.
 </p>
 
 <p align="center">
@@ -15,8 +15,10 @@
   <a href="#-requirements">Requirements</a> •
   <a href="#-installation">Installation</a> •
   <a href="#-how-it-works">How It Works</a> •
-  <a href="#-languages--ui">Languages & UI</a> •
+  <a href="#-languages--models">Languages & Models</a> •
+  <a href="#-ai-enhancement">AI Enhancement</a> •
   <a href="#-project-structure">Project Structure</a> •
+  <a href="#-troubleshooting">Troubleshooting</a> •
   <a href="#️-license">License</a>
 </p>
 
@@ -24,69 +26,59 @@
 
 ## 🚀 Features
 
-🎧 Convert MP3, WAV, M4A, AAC into clean text  
-🔍 Whisper-powered automatic language detection  
-🌍 Translate transcripts into 10 languages (IT, EN, ES, FR, ZH, HI, PT, AR, RU, JA)  
-🖥️ Full multilingual UI, including buttons and labels  
-🧠 UI language auto-selected from system language  
-🎨 Modern Dark UI  
-⚙️ Fast, accurate, lightweight  
-🪟 Windows compatible  
-🐧 Linux compatible  
-📝 Export transcripts into .txt files  
-🔧 FFmpeg auto-check with warnings  
-🔄 Clean and intuitive workflow  
+### 🎧 Audio Transcription
+- **Multi-format Support**: MP3, WAV, M4A, OGG, FLAC
+- **Automatic Conversion**: Converts audio to optimal format for speech recognition
+- **Real-time Progress**: Live progress bar and status updates
+
+### 🌍 Multilingual Support
+- **8 Languages**: Italian, English, French, German, Spanish, Portuguese, Russian, Chinese
+- **Auto-language Detection**: UI automatically matches your system language
+- **Model Auto-download**: Downloads speech recognition models on first use
+
+### 🤖 AI-Powered Enhancement
+- **Google Gemini Integration**: Improves punctuation and text flow
+- **Smart Punctuation**: Automatic sentence capitalization and punctuation
+- **Text Refinement**: Enhances readability while preserving meaning
+
+### 🎨 Modern Interface
+- **Dark Theme**: Easy on the eyes modern UI
+- **CustomTkinter**: Beautiful, customizable interface
+- **Intuitive Workflow**: Simple and user-friendly
+
+### ⚡ Technical Features
+- **Offline Capable**: Works without internet (except AI features)
+- **Cross-Platform**: Windows and Linux support
+- **Lightweight**: Fast and efficient processing
 
 ---
 
-## 📦 Download
+## 📦 Download & Installation
 
-Get the latest Windows 64-bit and Linux 64-bit release here:
+### Windows
+**Requirements:**
+- Windows 10 or later
+- FFmpeg (`winget install Gyan.FFmpeg`)
 
-👉 Latest Release:  
-https://github.com/il-mangia/Transcribeer/releases
+**Download:**
+👉 [Latest Windows Release](https://github.com/il-mangia/Transcribeer/releases)
 
-Available builds:
-- Windows EXE installer  
-- Windows portable ZIP  
-- Linux AppImage  
-- Linux tar.gz  
-- Source code  
+### Linux
+**Requirements:**
+- Ubuntu/Debian: `sudo apt install ffmpeg`
+- Fedora: `sudo dnf install ffmpeg`
+- Arch: `sudo pacman -S ffmpeg`
+**Download:**
+👉 [Latest Linux Release](https://github.com/il-mangia/Transcribeer/releases)
 
----
-
-## 🛠 Requirements
-
-### Transcriptor model  
-Already included inside the zip app.
-
-### FFmpeg (required)  
-Used to preprocess and normalize audio before trascribing. To install it:
-Windows (winget)  
-winget install Gyan.FFmpeg
-Linux (Ubuntu / Debian)  
-sudo apt update  
-sudo apt install ffmpeg 
-
----
-
-## 📥 Installation
-
-### 🪟 Windows  
-1. Download the latest release  
-2. Extract the zipped folder  
-3. Open Transcribeer.exe
-
----
-
-### 🐧 Linux
-
-#### AppImage
-(Open terminal in the extract folder)
-chmod +x Transcribeer.AppImage  
-./Transcribeer.AppImage
-
----
+### From source code folder (dev only)
+# Clone repository
+git clone https://github.com/il-mangia/
+cd Transcribeer
+# Install dependencies
+pip install -r requirements.txt
+# Run application
+python main.py
 
 ## 🧠 How It Works
 
@@ -102,25 +94,18 @@ chmod +x Transcribeer.AppImage
 
 Supported languages:
 
-IT — Italian  
-EN — English  
-ES — Spanish  
-FR — French  
-ZH — Chinese  
-HI — Hindi  
-PT — Portuguese  
-AR — Arabic  
-RU — Russian  
-JA — Japanese  
-
-UI Features:
-- System language detection  
-- Dropdown to manually change language  
-- All UI strings translated  
+🇮🇹 Italian (it) - Vosk Small IT 0.22
+🇺🇸 English (en) - Vosk Small EN-US 0.15
+🇫🇷 Francais	(fr) -	Vosk Small FR 0.22
+🇩🇪 Detusch (de) - Vosk Small DE-Zamia 0.3
+🇪🇸 Spanish	(es) - Vosk Small ES 0.42
+🇵🇹 Portoughese	(pt) - Vosk Small PT 0.3
+🇷🇺 Russian (ru) - Vosk Small RU 0.22
+🇨🇳 Chinese	(cn) - Vosk Small CN 0.22
 
 ---
 
-## 🔧 Development Setup (Optional)
+## 🔧 Development Setup (Source code folder)
 
 Install dependencies:  
 pip install -r requirements.txt  
@@ -130,7 +115,7 @@ python main.py
 
 ---
 
-## 🧪 Supported Audio Formats  
+## 🧪 Supported media Formats  
 
 - MP3  
 - WAV  
@@ -144,18 +129,18 @@ All are converted to WAV automatically.
 ## 🧰 Tech Stack  
 
 - Python 3  
-- Whisper  
-- Tkinter  
+- Vosk  
+- Customtkinter 
 - FFmpeg  
-- Google Translate API  
+- Google Gemini API
 
 ---
 
 ## 📝 Known Limitations  
 
-- Translation requires Internet  
+- AI function requires Internet  
 - GPU acceleration planned for future versions  
-- Local translation model planned  
+- Local translation model planned
 
 ---
 
