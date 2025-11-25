@@ -190,22 +190,6 @@ class ModelSetupWindow:
         self.progress_bar.pack(pady=15, fill="x", padx=10)
         self.progress_bar.set(0)
 
-         # ========== LOADER ANIMATO ==========
-        self.loader_frames = []
-        self.loader_label = ctk.CTkLabel(self.main_frame, text="")
-        try:
-            import PIL.ImageSequence as ImageSequence
-            gif = Image.open("loader.gif")  # assicurati che il file si chiami così
-            for frame in ImageSequence.Iterator(gif):
-                fr = frame.copy().resize((64, 64), Image.LANCZOS)
-                self.loader_frames.append(ImageTk.PhotoImage(fr))
-        except Exception as e:
-            print("Errore GIF loader:", e)
-            self.loader_frames = []
-
-        self.loader_running = False
-        self.loader_index = 0
-
         # Stato
         self.status_label = ctk.CTkLabel(
             self.main_frame,
@@ -555,18 +539,6 @@ class TranscriberApp:
         self.master.clipboard_append(txt)
 
     # ---------------------------------------------------------
-    # ANIMATE LOADER
-    # ---------------------------------------------------------
-    def animate_loader(self):
-        if not self.loader_running:
-            return
-        if self.loader_frames:
-            self.loader_label.configure(image=self.loader_frames[self.loader_index])
-            self.loader_index = (self.loader_index + 1) % len(self.loader_frames)
-        self.master.after(70, self.animate_loader)
-
-
-    # ---------------------------------------------------------
     # START TRANSCRIPTION
     # ---------------------------------------------------------
     def start_transcription(self):
@@ -596,11 +568,6 @@ class TranscriberApp:
         )
         self.transcribe_button.configure(text=self.T["status_transcribing"])
 
-        # Mostra il loader
-        self.loader_running = True
-        self.loader_label.grid(row=5, column=0, sticky="e", padx=10)
-        self.animate_loader()
-
         threading.Thread(
             target=self.transcribe_audio_threaded,
             args=(fp,),
@@ -626,8 +593,7 @@ class TranscriberApp:
     # ---------------------------------------------------------
     def transcribe_audio_threaded(self, filepath):
         temp_wav_file = "temp_audio_16k.wav"
-        self.loader_running = False
-        self.loader_label.grid_forget()
+
         try:
             # 1) Conversione audio
             audio = AudioSegment.from_file(filepath)
