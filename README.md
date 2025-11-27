@@ -65,7 +65,7 @@
 - Fedora: `sudo dnf install ffmpeg`
 - Arch: `sudo pacman -S ffmpeg`
 **Transcribeer:**
-👉 [Latest Linux Release](https://github.com/il-mangia/Transcribeer/releases)
+👉 [Latest Linux Release] - No Releases for now. i'm getting errors!!
 
 ### From source code folder (dev only)
 # Clone repository
