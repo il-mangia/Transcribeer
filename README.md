@@ -90,14 +90,14 @@ python main.py
 
 Supported languages:
 
-🇮🇹 Italian (it) - Vosk Small IT 0.22
-🇺🇸 English (en) - Vosk Small EN-US 0.15
-🇫🇷 Francais	(fr) -	Vosk Small FR 0.22
-🇩🇪 Detusch (de) - Vosk Small DE-Zamia 0.3
-🇪🇸 Spanish	(es) - Vosk Small ES 0.42
-🇵🇹 Portoughese	(pt) - Vosk Small PT 0.3
-🇷🇺 Russian (ru) - Vosk Small RU 0.22
-🇨🇳 Chinese	(cn) - Vosk Small CN 0.22
+🇮🇹 Italian (it) - Vosk Small IT 0.22 <br>
+🇺🇸 English (en) - Vosk Small EN-US 0.15 <br>
+🇫🇷 Francais	(fr) -	Vosk Small FR 0.22 <br>
+🇩🇪 Detusch (de) - Vosk Small DE-Zamia 0.3 <br>
+🇪🇸 Spanish	(es) - Vosk Small ES 0.42 <br>
+🇵🇹 Portoughese	(pt) - Vosk Small PT 0.3 <br>
+🇷🇺 Russian (ru) - Vosk Small RU 0.22 <br>
+🇨🇳 Chinese	(cn) - Vosk Small CN 0.22 <br>
 
 ---
 ## 🤖AI Enhancement
