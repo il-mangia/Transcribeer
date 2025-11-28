@@ -22,6 +22,7 @@ TRANSLATION_FILE = "translations.json"
 def load_translations():
     if not os.path.exists(TRANSLATION_FILE):
         # Utilizza una traduzione base se il file non è trovato per evitare crash immediati
+        print("translations.json non trovato. Uso traduzione di default (italiano).")
         return {"it": {"language_name": "Italiano", "app_name": "App Trascrizione", "setup_title": "Setup Modello", "setup_prompt": "Seleziona la lingua per scaricare il modello di riconoscimento vocale Vosk.", "status_verify": "Verifica stato del modello...", "status_found": "Modello '%s' trovato.", "status_not_found": "Modello '%s' non trovato.", "status_downloading": "Download Modello '%s'...", "status_download_progress": "Scaricati %.2f MB di %.2f MB", "status_extracting": "Estrazione file...", "status_loading": "Caricamento modello '%s'...", "error_download_extract": "Errore download/estrazione: %s", "error_model_load": "Errore caricamento modello da %s: %s", "btn_start": "Avvia", "btn_retry": "Riprova", "btn_download_start": "Scarica e Avvia", "app_title": " - Riconoscimento Vocale (%s)", "lang_active": "Lingua attiva: %s", "select_file_prompt": "Seleziona un file audio:", "btn_browse": "Sfoglia", "btn_transcribe": "Trascrivi", "status_ready": "Pronto per trascrivere.", "status_transcribing": "In Trascrizione...", "status_converting_wait": "Conversione audio (%s) in corso. Attesa stimata: %s", "status_listening": "Ascolto e Riconoscimento...", "status_transcribed": "Riconosciuto: ... %s", "status_complete": "Trascrizione completata.", "error_select_file": "Seleziona un file audio!", "error_critical": "Errore Critico Trascrizione.", "result_title": "Risultato Trascrizione:", "result_footer": " (Fine della trascrizione)", "time_sec": "sec", "time_min_sec": "min e %s sec", "time_audio_format": "%d min e %d sec", "ai_processing": "Elaborazione AI...", "ai_done": "Elaborazione AI completata.", "ai_error": "Errore elaborazione AI."}}
     
     with open(TRANSLATION_FILE, "r", encoding="utf-8") as f:
@@ -151,7 +152,6 @@ def load_app_logo(master):
         master.iconphoto(True, ImageTk.PhotoImage(icon))
     except:
         print("logo.png non trovato.")
-        secret = "secret"
 # =============================================================
 # ============== CLASSE PER GIF ANIMATE =======================
 # =============================================================
@@ -174,7 +174,7 @@ class GifLoader:
                 # Usa CTkImage invece di ImageTk.PhotoImage
                 ctk_frame = ctk.CTkImage(
                     frame.resize(size).convert("RGBA"), 
-                    size=size
+                    size=size # Mantiene la dimensione specificata
                 )
                 self.frames.append(ctk_frame)
             
@@ -260,7 +260,7 @@ class ModelSetupWindow:
         self.language_var = ctk.StringVar(value=default_lang_name)
 
         self.language_combo = ctk.CTkOptionMenu(
-            self.main_frame,
+            self.main_frame, # Usa CTkOptionMenu
             values=lang_names,
             variable=self.language_var,
             height=40,
@@ -293,14 +293,14 @@ class ModelSetupWindow:
         )
         self.action_button.grid(row=4, column=0, pady=10, sticky="ew", padx=20)
 
-        # Avvio controllo iniziale
-        self.check_model_status()
+        # Avvio controllo iniziale stato modello
+        self.check_model_status() 
 
     # -----------------------------------------------------------
     # Controllo stato del modello
     # -----------------------------------------------------------
     def check_model_status(self, event=None):
-        lang_ui = self.language_var.get()
+        lang_ui = self.language_var.get() # lingua selezionata nell'UI
 
         # trova il codice modello dal nome lingua UI
         selected_code = None
@@ -627,7 +627,7 @@ class TranscriberApp:
         # AI
         self.ai_button = ctk.CTkButton(
             bottom_frame,
-            text="AI",
+            text=self.T["ai_processing"],
             font=("Segoe UI", 15),
             height=44,
             state="disabled",
@@ -638,7 +638,7 @@ class TranscriberApp:
         # COPY
         self.copy_button = ctk.CTkButton(
             bottom_frame,
-            text="Copy",
+            text=self.T["btn_copy"],
             font=("Segoe UI", 15),
             height=44,
             state="disabled",
@@ -1031,4 +1031,3 @@ if __name__ == "__main__":
     root = ctk.CTk()
     ModelSetupWindow(root)
     root.mainloop()
-
