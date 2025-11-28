@@ -151,7 +151,7 @@ def load_app_logo(master):
         master.iconphoto(True, ImageTk.PhotoImage(icon))
     except:
         print("logo.png non trovato.")
-        s
+        secret = "secret"
 # =============================================================
 # ============== CLASSE PER GIF ANIMATE =======================
 # =============================================================
@@ -1031,3 +1031,4 @@ if __name__ == "__main__":
     root = ctk.CTk()
     ModelSetupWindow(root)
     root.mainloop()
+
